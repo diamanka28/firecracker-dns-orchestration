@@ -1,4 +1,3 @@
 # Keep only the configuration of the microVM
-setup/
 !setup/vm-config.json
-
+setup/
