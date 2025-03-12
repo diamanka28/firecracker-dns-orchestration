@@ -22,7 +22,10 @@ sudo iptables -t nat -D POSTROUTING -o "$HOST_IFACE" -j MASQUERADE || true
 sudo iptables -t nat -A POSTROUTING -o "$HOST_IFACE" -j MASQUERADE
 
 API_SOCKET="/tmp/firecracker.socket"
-LOGFILE="./firecracker.log"
+SETUP_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../setup" &>/dev/null && pwd)"
+KERNEL_DIR=$SETUP_DIR/kernel
+ROOTFS_DIR=$SETUP_DIR/rootfs
+LOGFILE="$SETUP_DIR/firecracker.log"
 
 # Create log file
 touch $LOGFILE
@@ -37,8 +40,8 @@ sudo curl -X PUT --unix-socket "${API_SOCKET}" \
     }" \
     "http://localhost/logger"
 
-KERNEL="./$(ls setup/vmlinux* | tail -1)"
-KERNEL_BOOT_ARGS="console=ttyS0 reboot=k panic=1 pci=off init=/root/HelloWorld"
+KERNEL="$(ls $KERNEL_DIR/vmlinux* | tail -1)"
+KERNEL_BOOT_ARGS="console=ttyS0 reboot=k panic=1 pci=off"
 
 ARCH=$(uname -m)
 
@@ -49,12 +52,12 @@ fi
 # Set boot source
 sudo curl -X PUT --unix-socket "${API_SOCKET}" \
     --data "{
-        \"kernel_image_path\": \"${KERNEL}\",
+        \"kernel_image_path\": \"$KERNEL\",
         \"boot_args\": \"${KERNEL_BOOT_ARGS}\"
     }" \
     "http://localhost/boot-source"
 
-ROOTFS="setup/ubuntu-24.04.ext4"
+ROOTFS="$(ls $ROOTFS_DIR/*.ext4 | tail -1)"
 
 # Set rootfs
 sudo curl -X PUT --unix-socket "${API_SOCKET}" \
@@ -96,13 +99,13 @@ sudo curl -X PUT --unix-socket "${API_SOCKET}" \
 sleep 2s
 
 # Setup internet access in the guest
-ssh -i ./setup/ubuntu-24.04.id_rsa root@172.16.0.2  "ip route add default via 172.16.0.1 dev eth0"
+ssh -i $ROOTFS_DIR/id_rsa root@172.16.0.2  "ip route add default via 172.16.0.1 dev eth0"
 
 # Setup DNS resolution in the guest
-ssh -i ./setup/ubuntu-24.04.id_rsa root@172.16.0.2  "echo 'nameserver 8.8.8.8' > /etc/resolv.conf"
+ssh -i $ROOTFS_DIR/id_rsa root@172.16.0.2  "echo 'nameserver 8.8.8.8' > /etc/resolv.conf"
 
 # SSH into the microVM
-ssh -i ./setup/ubuntu-24.04.id_rsa root@172.16.0.2
+ssh -i $ROOTFS_DIR/id_rsa root@172.16.0.2
 
 # Use `root` for both the login and password.
 # Run `reboot` to exit.
