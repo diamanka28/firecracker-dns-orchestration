@@ -61,40 +61,22 @@ void querry_process(int client_socket, struct sockaddr_in *client_addr, socklen_
         }
     }
 
-    char split_char[] = "/";
     if (is_right_domain) {
-        printf("Le requête %s correspond bien à notre domaine .\n",message.question[count].q_name);
+        printf("La requête %s correspond bien à notre domaine.\n", message.question[count].q_name);
 
-        // Tokenize the domain name
-        char* fonction = strtok(message.question[count].q_name, split_char);
-
-        // Ignorer la première partie (psar_firecracker.com)
-        if (fonction != NULL) {
-            // on fait rien on skip le domaine
-        }
-
-        // Récupérer la fonction demandée
-        fonction = strtok(NULL, split_char);
-        if (fonction != NULL) {
-            printf("Fonction demandée : %s\n", fonction);
-
-            // Parcourir la liste des services pour trouver la fonction demandée
-            int service_found = 0;
-            for (int i = 0; i < num_services; i++) {
-                if (strcmp(fonction, services[i].name) == 0) {
-                    int value = services[i].func(); // Appeler la fonction
-                    printf("Valeur récupérée = %d \n", value);
-                    service_found = 1;
-                    break;
-                }
-            }
-
-            if (!service_found) {
-                printf("Fonction non trouvée : %s\n", fonction);
-            }
-        } else {
-            printf("Aucune fonction trouvée après le /.\n");
-        }
+         // Tokenizer pour récupérer la fonction demandée
+         char *split_char = "/";
+         char *fonction = strtok(message.question[count].q_name, split_char);
+ 
+         // Ignorer la première partie (ex: psar_firecracker.com)
+         if (fonction != NULL) {
+             fonction = strtok(NULL, split_char); // Récupérer la vraie fonction
+         }
+ 
+         // Lancer la fonction demandée
+         find_and_launch_service(fonction);
+     
+        
     } else {
         printf("Forwarding DNS request...\n");
 
@@ -215,7 +197,29 @@ size_t decode_dns_name(uint8_t *buffer, size_t offset, char *output) {
     return (offset - original_offset) + 1;
 }
 
+// Fonction qui recherche et exécute un service
+void find_and_launch_service(const char *fonction) {
+    if (fonction != NULL) {
+        printf("Fonction demandée : %s\n", fonction);
 
+        // Recherche du service dans la liste
+        int service_found = 0;
+        for (int i = 0; i < num_services; i++) {
+            if (strcmp(fonction, services[i].name) == 0) {
+                int value = services[i].func(); // Exécution de la fonction
+                printf("Valeur récupérée = %d\n", value);
+                service_found = 1;
+                break;
+            }
+        }
+
+        if (!service_found) {
+            printf("Fonction non trouvée : %s\n", fonction);
+        }
+    } else {
+        printf("Aucune fonction trouvée après le /.\n");
+    }
+}
 
 //================================== service offert par le serveur ================================
 

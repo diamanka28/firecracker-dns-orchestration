@@ -62,10 +62,9 @@ void querry_process(int client_socket, struct sockaddr_in *client_addr, socklen_
 int to_forward(char* buffer, int taille, char * response, int * response_len);
 void deserialize_message(uint8_t * buffer, size_t taille, dns_message_t *message);
 size_t decode_dns_name(uint8_t* buffer, size_t offset, char* output);
+void find_and_launch_service(const char *fonction);
 
 // Liste qui stocke les fonctions disponibles du serveur 
-// Déclaration des services
-
 
 // Déclaration des services
 typedef int (*service_func_t)();
