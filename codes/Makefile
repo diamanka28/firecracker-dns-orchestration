@@ -10,27 +10,26 @@ INC_DIR = include
 	
 # Source files
 SRCS_DNS = $(SRC_DIR)/dns_proxy.c $(SRC_DIR)/dns_utils.c
-#SRCS_CLIENT = $(SRC_DIR)/client.c $(SRC_DIR)/client_utils.c
+SRCS_HELLO = $(SRC_DIR)/HelloWorld.c
 
 # Object files
 OBJS_DNS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS_DNS))
-#OBJS_CLIENT = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS_CLIENT))
+OBJS_HELLO = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS_HELLO))
 
 # Target executables
 DNS_PROXY = dns_proxy
-#CLIENT = client
+HELLO = HelloWorld
 
 # Default target
-all: $(DNS_PROXY)
-#all: $(DNS_PROXY) $(CLIENT)
+all: $(DNS_PROXY) $(HELLO)
 
 # Link object files to create the DNS_PROXY
 $(DNS_PROXY): $(OBJS_DNS)
 	$(CC) $(LDFLAGS) $^ -o $@
 	
 # Link object files to create the CLIENT
-#$(CLIENT): $(OBJS_CLIENT)
-#	$(CC) $(LDFLAGS) $^ -o $@
+$(HELLO): $(OBJS_HELLO)
+	$(CC) $(LDFLAGS) $^ -o $@
 
 # Compile .c files into .o files
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
