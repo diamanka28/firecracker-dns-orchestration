@@ -1,4 +1,5 @@
 # Keep only the configuration of the microVM
-firecracker
 setup/*
 !setup/vm-config.json
+codes/bin
+codes/dns_proxy

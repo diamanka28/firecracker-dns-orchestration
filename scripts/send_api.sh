@@ -104,8 +104,5 @@ ssh -i $ROOTFS_DIR/id_rsa root@172.16.0.2  "ip route add default via 172.16.0.1 
 # Setup DNS resolution in the guest
 ssh -i $ROOTFS_DIR/id_rsa root@172.16.0.2  "echo 'nameserver 8.8.8.8' > /etc/resolv.conf"
 
-# SSH into the microVM
-ssh -i $ROOTFS_DIR/id_rsa root@172.16.0.2
-
 # Use `root` for both the login and password.
 # Run `reboot` to exit.

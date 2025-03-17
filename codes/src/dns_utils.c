@@ -48,7 +48,7 @@ void querry_process(int client_socket, struct sockaddr_in *client_addr, socklen_
 
     // Désérialiser le message
     dns_message_t message;
-    deserialize_message(buffer, recv_len, &message);
+    deserialize_message(buffer, &message);
 
     // Vérifier si c'est le bon domaine
     int is_right_domain = 0;
@@ -93,7 +93,7 @@ void querry_process(int client_socket, struct sockaddr_in *client_addr, socklen_
     printf("_______________________________________________________________\n");
 }
 
-void deserialize_message(uint8_t *buffer, size_t len, dns_message_t *message) {
+void deserialize_message(uint8_t *buffer, dns_message_t *message) {
     size_t offset = 0;
     uint16_t temp;
 

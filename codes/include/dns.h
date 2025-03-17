@@ -60,7 +60,7 @@ typedef struct dns
 // DECLARATION DES FGONCTIONS
 void querry_process(int client_socket, struct sockaddr_in *client_addr, socklen_t *length);
 int to_forward(char* buffer, int taille, char * response, int * response_len);
-void deserialize_message(uint8_t * buffer, size_t taille, dns_message_t *message);
+void deserialize_message(uint8_t * buffer, dns_message_t *message);
 size_t decode_dns_name(uint8_t* buffer, size_t offset, char* output);
 void find_and_launch_service(const char *fonction);
 
