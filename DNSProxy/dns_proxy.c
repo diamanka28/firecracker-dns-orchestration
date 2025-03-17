@@ -1,6 +1,7 @@
 #include "dns.h"
 
 int main(int argc, char const *argv[]) {
+    printf("nom du domaine : %s \n ",DOMAIN);
     int server_socket;
     struct sockaddr_in server_addr, client_addr;
     socklen_t client_len = sizeof(client_addr);

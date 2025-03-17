@@ -46,33 +46,61 @@ void querry_process(int client_socket, struct sockaddr_in *client_addr, socklen_
         return;
     }
 
-    // Convertir l'adresse du client en string pour l'afficher
-    char client[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &client_addr->sin_addr, client, INET_ADDRSTRLEN);
-    //printf("Requête reçue de %s\n", client);
-
-    // Désérialiser le message (si nécessaire pour traitement)
+    // Désérialiser le message
     dns_message_t message;
     deserialize_message(buffer, recv_len, &message);
 
-    // Vérifier si c'est pour "wikipedia"
-    int is_wikipedia = 0;
+    // Vérifier si c'est le bon domaine
+    int is_right_domain = 0;
+    int count;
     for (int i = 0; i < message.header.qd_count; i++) {
-        if (strstr(message.question[i].q_name, "wikipedia") != NULL) {
-            is_wikipedia = 1;
+        if (strstr(message.question[i].q_name, DOMAIN) != NULL) {
+            is_right_domain = 1;
+            count = i;
             break;
         }
     }
 
-    if (is_wikipedia) {
-        printf("C'est à moi : réponse locale pour Wikipedia.\n");
-        // TODO : Générer une réponse DNS locale et l’envoyer au client
+    char split_char[] = "/";
+    if (is_right_domain) {
+        printf("Le requête %s correspond bien à notre domaine .\n",message.question[count].q_name);
+
+        // Tokenize the domain name
+        char* fonction = strtok(message.question[count].q_name, split_char);
+
+        // Ignorer la première partie (psar_firecracker.com)
+        if (fonction != NULL) {
+            // on fait rien on skip le domaine
+        }
+
+        // Récupérer la fonction demandée
+        fonction = strtok(NULL, split_char);
+        if (fonction != NULL) {
+            printf("Fonction demandée : %s\n", fonction);
+
+            // Parcourir la liste des services pour trouver la fonction demandée
+            int service_found = 0;
+            for (int i = 0; i < num_services; i++) {
+                if (strcmp(fonction, services[i].name) == 0) {
+                    int value = services[i].func(); // Appeler la fonction
+                    printf("Valeur récupérée = %d \n", value);
+                    service_found = 1;
+                    break;
+                }
+            }
+
+            if (!service_found) {
+                printf("Fonction non trouvée : %s\n", fonction);
+            }
+        } else {
+            printf("Aucune fonction trouvée après le /.\n");
+        }
     } else {
         printf("Forwarding DNS request...\n");
 
         // Forward vers le DNS distant et recevoir une réponse
         if (to_forward((char *)buffer, recv_len, (char *)response, &resp_len)) {
-            printf("Réponse reçue, renvoi au client %s\n", client);
+            printf("Réponse reçue, renvoi au client\n");
 
             // Envoyer la réponse au client (dig)
             if (sendto(client_socket, response, resp_len, 0, (struct sockaddr *)client_addr, *length) < 0) {
@@ -80,6 +108,7 @@ void querry_process(int client_socket, struct sockaddr_in *client_addr, socklen_
             }
         }
     }
+    printf("_______________________________________________________________\n");
 }
 
 void deserialize_message(uint8_t *buffer, size_t len, dns_message_t *message) {
@@ -185,3 +214,27 @@ size_t decode_dns_name(uint8_t *buffer, size_t offset, char *output) {
 
     return (offset - original_offset) + 1;
 }
+
+
+
+//================================== service offert par le serveur ================================
+
+
+// Implémentation des services
+int func_A() {
+    return 1;
+}
+
+int func_B() {
+    return 2;
+}
+
+// Liste globale des services
+service_t services[] = {
+    {"func_A", func_A},
+    {"func_B", func_B},
+    // Ajoutez d'autres services ici
+};
+
+// Nombre de services dans la liste
+const int num_services = sizeof(services) / sizeof(services[0]);

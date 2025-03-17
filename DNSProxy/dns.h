@@ -14,6 +14,7 @@
 #define MAX_DN_LENGTH 255
 #define MAX_QUESTION 20
 #define MAX_RECORD 20
+#define DOMAIN "psar_firecracker"
 
 // DEFINITION STRUCTURES
 typedef struct header
@@ -61,3 +62,22 @@ void querry_process(int client_socket, struct sockaddr_in *client_addr, socklen_
 int to_forward(char* buffer, int taille, char * response, int * response_len);
 void deserialize_message(uint8_t * buffer, size_t taille, dns_message_t *message);
 size_t decode_dns_name(uint8_t* buffer, size_t offset, char* output);
+
+// Liste qui stocke les fonctions disponibles du serveur 
+// Déclaration des services
+
+
+// Déclaration des services
+typedef int (*service_func_t)();
+typedef struct {
+    const char *name;      // Nom de la fonction
+    service_func_t func;   // Pointeur vers la fonction
+} service_t;
+
+extern service_t services[]; // Liste globale des services
+extern const int num_services; // Nombre de services dans la liste
+
+// Déclaration des fonctions de service
+int func_A();
+int func_B();
+
