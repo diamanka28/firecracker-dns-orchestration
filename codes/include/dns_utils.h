@@ -65,7 +65,7 @@ void querry_process(int client_socket, struct sockaddr_in *client_addr, socklen_
 int to_forward(char* buffer, int taille, char * response, int * response_len);
 void deserialize_message(uint8_t * buffer, dns_message_t *message);
 size_t decode_dns_name(uint8_t* buffer, size_t offset, char* output);
-void find_and_launch_service(const char *fonction);
+void find_and_launch_service(const char *fonction, const char *param);
 
 // Liste qui stocke les fonctions disponibles du serveur 
 
@@ -77,15 +77,21 @@ typedef union {
 } service_func_t;
 
 typedef enum {
-    SERVICE_TYPE_INT,  // La fonction retourne un int
-    SERVICE_TYPE_VOID  // La fonction retourne void
+    SERVICE_TYPE_VOID,
+    SERVICE_TYPE_INT,
+    SERVICE_TYPE_INT_PARAM
 } service_type_t;
 
 typedef struct {
-    const char *name;      // Nom de la fonction
-    service_func_t func;   // Pointeur vers la fonction
-    service_type_t type;   // Type de la fonction (int ou void)
+    char *name;
+    union {
+        void (*func_void)();
+        int (*func_int)();
+        void (*func_int_param)(int);
+    } func;
+    service_type_t type;
 } service_t;
+
 
 extern service_t services[]; // Liste globale des services
 extern const int num_services; // Nombre de services dans la liste

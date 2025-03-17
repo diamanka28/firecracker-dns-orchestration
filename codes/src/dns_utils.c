@@ -65,17 +65,18 @@ void querry_process(int client_socket, struct sockaddr_in *client_addr, socklen_
     if (is_right_domain) {
         printf("La requête %s correspond bien à notre domaine.\n", message.question[count].q_name);
 
-        // Tokenizer pour récupérer la fonction demandée
+        // Extraire la fonction et son paramètre
         char *split_char = "/";
         char *fonction = strtok(message.question[count].q_name, split_char);
+        char *param = NULL;
 
-        // Ignorer la première partie (ex: psar_firecracker.com)
         if (fonction != NULL) {
             fonction = strtok(NULL, split_char); // Récupérer la vraie fonction
+            param = strtok(NULL, split_char); // Récupérer le paramètre (s'il existe)
         }
 
         // Lancer la fonction demandée
-        find_and_launch_service(fonction);
+        find_and_launch_service(fonction, param);
 
     } else {
         printf("Forwarding DNS request...\n");
@@ -198,7 +199,7 @@ size_t decode_dns_name(uint8_t *buffer, size_t offset, char *output) {
 }
 
 // Fonction qui recherche et exécute un service
-void find_and_launch_service(const char *fonction) {
+void find_and_launch_service(const char *fonction, const char *param) {
     if (fonction != NULL) {
         printf("Fonction demandée : %s\n", fonction);
 
@@ -208,11 +209,21 @@ void find_and_launch_service(const char *fonction) {
             if (strcmp(fonction, services[i].name) == 0) {
                 // Vérifier le type de la fonction
                 if (services[i].type == SERVICE_TYPE_INT) {
-                    int value = services[i].func.func_int(); // Exécution de la fonction
+                    int value = services[i].func.func_int(); // Exécuter la fonction
                     printf("Valeur récupérée = %d\n", value);
-                } else if (services[i].type == SERVICE_TYPE_VOID) {
-                    services[i].func.func_void(); // Exécution de la fonction
+                } 
+                else if (services[i].type == SERVICE_TYPE_VOID) {
+                    services[i].func.func_void(); // Exécuter la fonction
                     printf("Fonction void exécutée.\n");
+                } 
+                else if (services[i].type == SERVICE_TYPE_INT_PARAM) {
+                    if (param != NULL) {
+                        int n = atoi(param); // Convertir en entier
+                        services[i].func.func_int_param(n);
+                        printf("Fonction exécutée avec paramètre: %d\n", n);
+                    } else {
+                        printf("Erreur: Aucun paramètre fourni pour %s\n", fonction);
+                    }
                 }
                 service_found = 1;
                 break;
@@ -248,16 +259,31 @@ void lunch_microvm()
 
 
 
-void lunch_n_microvm(int n){
-	printf("lunch_n_microvm avec n = %d\n", n);
+void lunch_n_microvm(int n) {
+    printf("Objectif : Lancement de %d microVMs\n", n);
+    for (int i = 0; i < n; i++) {
+        printf("Lancement de la microVM %d\n", i + 1);
+        
+        pid_t pid = fork();
+        if (pid == 0) { // Child process
+            execlp("gnome-terminal", "gnome-terminal", "--", "bash", "-c", "./../scripts/start.sh; exec bash", NULL);
+            perror("Erreur lors de l'exécution de gnome-terminal");
+            exit(EXIT_FAILURE);
+        } else if (pid < 0) {
+            perror("Erreur lors du fork()");
+        }
+    }
 }
+
 
 service_t services[] = {
     {"func_A", {.func_int = func_A}, SERVICE_TYPE_INT},
     {"func_B", {.func_int = func_B}, SERVICE_TYPE_INT},
-    {"lunch_microvm", {.func_void = lunch_microvm}, SERVICE_TYPE_VOID}
-    // Ajoutez d'autres services ici
+    {"lunch_microvm", {.func_void = lunch_microvm}, SERVICE_TYPE_VOID},
+    {"lunch_n_microvm", {.func_int_param = lunch_n_microvm}, SERVICE_TYPE_INT_PARAM}
 };
+
+
 
 // Nombre de services dans la liste
 const int num_services = sizeof(services) / sizeof(services[0]);
