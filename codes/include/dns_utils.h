@@ -93,11 +93,7 @@ extern const int num_services; // Nombre de services dans la liste
 // Déclaration des fonctions de service
 int func_A();
 int func_B();
-<<<<<<< HEAD:codes/include/dns_utils.h
-
-#endif
-
-=======
 void lunch_microvm(); 
 void lunch_n_microvm(int n); // TODO : tester si on peut lancer avec les parametre?
->>>>>>> 44a2879787655da53b23aeef54183909974f8958:codes/include/dns.h
+
+#endif
