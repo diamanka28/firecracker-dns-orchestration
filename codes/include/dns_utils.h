@@ -63,17 +63,28 @@ typedef struct dns
 // DECLARATION DES FGONCTIONS
 void querry_process(int client_socket, struct sockaddr_in *client_addr, socklen_t *length);
 int to_forward(char* buffer, int taille, char * response, int * response_len);
-void deserialize_message(uint8_t * buffer, dns_message_t *message);
+void deserialize_message(uint8_t * buffer, size_t taille, dns_message_t *message);
 size_t decode_dns_name(uint8_t* buffer, size_t offset, char* output);
 void find_and_launch_service(const char *fonction);
 
 // Liste qui stocke les fonctions disponibles du serveur 
 
 // Déclaration des services
-typedef int (*service_func_t)();
+typedef union {
+    int (*func_int)(); // Pointeur vers une fonction retournant un int
+    void (*func_void)(); // Pointeur vers une fonction retournant void
+    
+} service_func_t;
+
+typedef enum {
+    SERVICE_TYPE_INT,  // La fonction retourne un int
+    SERVICE_TYPE_VOID  // La fonction retourne void
+} service_type_t;
+
 typedef struct {
     const char *name;      // Nom de la fonction
     service_func_t func;   // Pointeur vers la fonction
+    service_type_t type;   // Type de la fonction (int ou void)
 } service_t;
 
 extern service_t services[]; // Liste globale des services
@@ -82,6 +93,11 @@ extern const int num_services; // Nombre de services dans la liste
 // Déclaration des fonctions de service
 int func_A();
 int func_B();
+<<<<<<< HEAD:codes/include/dns_utils.h
 
 #endif
 
+=======
+void lunch_microvm(); 
+void lunch_n_microvm(int n); // TODO : tester si on peut lancer avec les parametre?
+>>>>>>> 44a2879787655da53b23aeef54183909974f8958:codes/include/dns.h

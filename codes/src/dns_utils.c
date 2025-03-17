@@ -48,7 +48,7 @@ void querry_process(int client_socket, struct sockaddr_in *client_addr, socklen_
 
     // Désérialiser le message
     dns_message_t message;
-    deserialize_message(buffer, &message);
+    deserialize_message(buffer, recv_len, &message);
 
     // Vérifier si c'est le bon domaine
     int is_right_domain = 0;
@@ -60,23 +60,23 @@ void querry_process(int client_socket, struct sockaddr_in *client_addr, socklen_
             break;
         }
     }
+    printf("Requête reçue de %s:%d\n", inet_ntoa(client_addr->sin_addr), ntohs(client_addr->sin_port));
 
     if (is_right_domain) {
         printf("La requête %s correspond bien à notre domaine.\n", message.question[count].q_name);
 
-         // Tokenizer pour récupérer la fonction demandée
-         char *split_char = "/";
-         char *fonction = strtok(message.question[count].q_name, split_char);
- 
-         // Ignorer la première partie (ex: psar_firecracker.com)
-         if (fonction != NULL) {
-             fonction = strtok(NULL, split_char); // Récupérer la vraie fonction
-         }
- 
-         // Lancer la fonction demandée
-         find_and_launch_service(fonction);
-     
-        
+        // Tokenizer pour récupérer la fonction demandée
+        char *split_char = "/";
+        char *fonction = strtok(message.question[count].q_name, split_char);
+
+        // Ignorer la première partie (ex: psar_firecracker.com)
+        if (fonction != NULL) {
+            fonction = strtok(NULL, split_char); // Récupérer la vraie fonction
+        }
+
+        // Lancer la fonction demandée
+        find_and_launch_service(fonction);
+
     } else {
         printf("Forwarding DNS request...\n");
 
@@ -93,7 +93,7 @@ void querry_process(int client_socket, struct sockaddr_in *client_addr, socklen_
     printf("_______________________________________________________________\n");
 }
 
-void deserialize_message(uint8_t *buffer, dns_message_t *message) {
+void deserialize_message(uint8_t *buffer, size_t len, dns_message_t *message) {
     size_t offset = 0;
     uint16_t temp;
 
@@ -206,8 +206,14 @@ void find_and_launch_service(const char *fonction) {
         int service_found = 0;
         for (int i = 0; i < num_services; i++) {
             if (strcmp(fonction, services[i].name) == 0) {
-                int value = services[i].func(); // Exécution de la fonction
-                printf("Valeur récupérée = %d\n", value);
+                // Vérifier le type de la fonction
+                if (services[i].type == SERVICE_TYPE_INT) {
+                    int value = services[i].func.func_int(); // Exécution de la fonction
+                    printf("Valeur récupérée = %d\n", value);
+                } else if (services[i].type == SERVICE_TYPE_VOID) {
+                    services[i].func.func_void(); // Exécution de la fonction
+                    printf("Fonction void exécutée.\n");
+                }
                 service_found = 1;
                 break;
             }
@@ -233,10 +239,23 @@ int func_B() {
     return 2;
 }
 
-// Liste globale des services
+void lunch_microvm()
+{int status = system("gnome-terminal -- bash -c './../scripts/start.sh; exec bash'");
+    if (status == -1) {
+        perror("Erreur lors de l'exécution de system()");
+    }
+}
+
+
+
+void lunch_n_microvm(int n){
+
+}
+
 service_t services[] = {
-    {"func_A", func_A},
-    {"func_B", func_B},
+    {"func_A", {.func_int = func_A}, SERVICE_TYPE_INT},
+    {"func_B", {.func_int = func_B}, SERVICE_TYPE_INT},
+    {"lunch_microvm", {.func_void = lunch_microvm}, SERVICE_TYPE_VOID}
     // Ajoutez d'autres services ici
 };
 
