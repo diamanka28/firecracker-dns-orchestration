@@ -1,5 +1,8 @@
 //RESSOURCE RFC: https://datatracker.ietf.org/doc/html/rfc1035
 
+#ifndef __DNS_UTILS__
+#define __DNS_UTILS__
+
 // INCLUDING
 #include <stdio.h>
 #include <stdlib.h>
@@ -79,4 +82,6 @@ extern const int num_services; // Nombre de services dans la liste
 // Déclaration des fonctions de service
 int func_A();
 int func_B();
+
+#endif
 

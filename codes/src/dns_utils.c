@@ -1,4 +1,4 @@
-#include "dns.h"
+#include "dns_utils.h"
 
 int to_forward(char *buffer, int buffer_len, char *response, int *response_len) {
     int dns_sock = socket(AF_INET, SOCK_DGRAM, 0);
