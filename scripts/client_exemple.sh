@@ -1,3 +1,4 @@
+#!/bin/bash
 
 # permet de demander au serveur de lancer 3 micro-vm
 dig @127.0.0.1 -p 2025 psar_firecracker.com/lunch_n_microvm/3 +tries=1 +retry=0

@@ -1,4 +1,4 @@
-#include "dns_utils.h"
+#include "../include/dns_utils.h"
 
 int main(int argc, char const *argv[]) {
     printf("nom du domaine : %s \n ",DOMAIN);

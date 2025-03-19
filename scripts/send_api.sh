@@ -21,7 +21,17 @@ HOST_IFACE=$(ip -j route list default |jq -r '.[0].dev')
 sudo iptables -t nat -D POSTROUTING -o "$HOST_IFACE" -j MASQUERADE || true
 sudo iptables -t nat -A POSTROUTING -o "$HOST_IFACE" -j MASQUERADE
 
-API_SOCKET="/tmp/firecracker.socket"
+# ----- CONFIG -----
+COUNTER_FILE="/tmp/firecracker_counter.txt"
+SOCKET_BASE="/tmp/firecracker"
+# ----- Lire le dernier VM_ID -----
+if [ ! -f "$COUNTER_FILE" ]; then
+    echo "1" > "$COUNTER_FILE"
+fi
+VM_ID=$(cat "$COUNTER_FILE")
+
+# ----- Construire le nom du socket -----
+API_SOCKET="${SOCKET_BASE}_${VM_ID}.socket"
 SETUP_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../setup" &>/dev/null && pwd)"
 KERNEL_DIR=$SETUP_DIR/kernel
 ROOTFS_DIR=$SETUP_DIR/rootfs

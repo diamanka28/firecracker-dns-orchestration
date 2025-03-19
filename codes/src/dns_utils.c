@@ -1,4 +1,4 @@
-#include "dns_utils.h"
+#include "../include/dns_utils.h"
 
 int to_forward(char *buffer, int buffer_len, char *response, int *response_len) {
     int dns_sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -62,7 +62,7 @@ void querry_process(int client_socket, struct sockaddr_in *client_addr, socklen_
     }
     printf("Requête reçue de %s:%d\n", inet_ntoa(client_addr->sin_addr), ntohs(client_addr->sin_port));
 
-    if (is_right_domain) {
+    if (is_right_domain) { // il est de notre domain
         printf("La requête %s correspond bien à notre domaine.\n", message.question[count].q_name);
 
         // Extraire la fonction et son paramètre
@@ -78,7 +78,7 @@ void querry_process(int client_socket, struct sockaddr_in *client_addr, socklen_
         // Lancer la fonction demandée
         find_and_launch_service(fonction, param);
 
-    } else {
+    } else { // il n'est pas de notre domaine c'est à forwarder
         printf("Forwarding DNS request...\n");
 
         // Forward vers le DNS distant et recevoir une réponse
@@ -91,7 +91,6 @@ void querry_process(int client_socket, struct sockaddr_in *client_addr, socklen_
             }
         }
     }
-    printf("_______________________________________________________________\n");
 }
 
 void deserialize_message(uint8_t *buffer, dns_message_t *message) {
@@ -251,7 +250,8 @@ int func_B() {
 }
 
 void lunch_microvm()
-{int status = system("gnome-terminal -- bash -c './../scripts/start.sh; exec bash'");
+{
+    int status = system("gnome-terminal -- bash -c './../scripts/start.sh; exec bash'");
     if (status == -1) {
         perror("Erreur lors de l'exécution de system()");
     }
@@ -266,7 +266,7 @@ void lunch_n_microvm(int n) {
         
         pid_t pid = fork();
         if (pid == 0) { // Child process
-            execlp("gnome-terminal", "gnome-terminal", "--", "bash", "-c", "./../scripts/start.sh; exec bash", NULL);
+            execl("/bin/bash", "bash", "./../scripts/start.sh", NULL);
             perror("Erreur lors de l'exécution de gnome-terminal");
             exit(EXIT_FAILURE);
         } else if (pid < 0) {
@@ -282,8 +282,6 @@ service_t services[] = {
     {"lunch_microvm", {.func_void = lunch_microvm}, SERVICE_TYPE_VOID},
     {"lunch_n_microvm", {.func_int_param = lunch_n_microvm}, SERVICE_TYPE_INT_PARAM}
 };
-
-
 
 // Nombre de services dans la liste
 const int num_services = sizeof(services) / sizeof(services[0]);
